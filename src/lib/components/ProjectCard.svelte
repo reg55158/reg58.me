@@ -70,7 +70,7 @@
 	}
 
 	.status.in-progress {
-		color: var(--on);
+		color: var(--highlight);
 	}
 
 	.status.archived {
