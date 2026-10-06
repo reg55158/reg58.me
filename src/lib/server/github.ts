@@ -42,15 +42,25 @@ export async function getProjects(fetch: typeof globalThis.fetch): Promise<Proje
 		);
 		if (!res.ok) throw new Error(`GitHub responded ${res.status}`);
 
-		// Skip forks, and repos that already have a hand-written card (e.g. this site once it's public).
-		const handWritten = new Set(extraProjects.map((p) => p.title.toLowerCase()));
-		const own = ((await res.json()) as GithubRepo[]).filter(
-			(r) => !r.fork && !handWritten.has(r.name.toLowerCase())
-		);
-		const tagged = own.filter((r) => r.topics?.includes(SHOWCASE_TOPIC));
-		const repos = tagged.length ? tagged : own;
+		const own = ((await res.json()) as GithubRepo[]).filter((r) => !r.fork);
+		const repoByName = new Map(own.map((r) => [r.name.toLowerCase(), r]));
 
-		const projects = [...extraProjects, ...repos.map(toProject)];
+		// Hand-written cards whose repo is public get a "Code" link to it automatically.
+		const extras = extraProjects.map((project) => {
+			const repo = repoByName.get(project.title.toLowerCase());
+			const hasCodeLink = project.links?.some((l) => l.href === repo?.html_url);
+			return repo && !hasCodeLink
+				? { ...project, links: [...(project.links ?? []), { label: 'Code', href: repo.html_url }] }
+				: project;
+		});
+
+		// Repos with a hand-written card are shown once, as that card.
+		const handWritten = new Set(extraProjects.map((p) => p.title.toLowerCase()));
+		const rest = own.filter((r) => !handWritten.has(r.name.toLowerCase()));
+		const tagged = rest.filter((r) => r.topics?.includes(SHOWCASE_TOPIC));
+		const repos = tagged.length ? tagged : rest;
+
+		const projects = [...extras, ...repos.map(toProject)];
 		cache = { projects, fetchedAt: Date.now() };
 		return projects;
 	} catch (e) {
