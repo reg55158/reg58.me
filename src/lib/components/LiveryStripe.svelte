@@ -13,8 +13,8 @@
 	const RISE = 46; // how much lower the left end sits than the right end
 	const THICKNESS = 64;
 	const BAND_CENTRE = 32; // middle of the orange band, measured from the stripe's top edge
-	const CAR_WIDTH = 120;
-	const CAR_HEIGHT = 40;
+	const CAR_WIDTH = 127; // the car's drawing is 270×100, scaled to fit the stripe
+	const CAR_HEIGHT = 47;
 
 	const uid = $props.id();
 
@@ -92,42 +92,120 @@
 	{#if animated}
 		<div class="car" style:transform="translate3d({carLeft}px, {carTop}px, 0) rotate({angle}rad)">
 			<span class="speed-lines" class:moving={speed > 0} style:opacity={speed}></span>
-			<!-- Top-down F1 car in Gulf livery colours (no logos), nose pointing right -->
-			<svg viewBox="0 0 120 40" width={CAR_WIDTH} height={CAR_HEIGHT}>
-				<!-- suspension arms -->
-				<g stroke="var(--navy)" stroke-width="1.2">
-					<line x1="20" y1="8" x2="28" y2="15" />
-					<line x1="20" y1="32" x2="28" y2="25" />
-					<line x1="89" y1="8" x2="82" y2="16" />
-					<line x1="89" y1="32" x2="82" y2="24" />
-				</g>
-				<!-- tyres -->
-				<g fill="var(--navy)">
-					<rect x="12" y="0.5" width="17" height="8.5" rx="2.5" />
-					<rect x="12" y="31" width="17" height="8.5" rx="2.5" />
-					<rect x="82" y="2" width="14" height="7" rx="2" />
-					<rect x="82" y="31" width="14" height="7" rx="2" />
-				</g>
-				<!-- rear wing -->
-				<rect x="2" y="5" width="8" height="30" rx="1.5" fill="var(--navy)" />
-				<rect x="3.5" y="6.5" width="5" height="27" rx="1" fill="var(--gulf-orange)" />
-				<!-- body: narrow at the back, wide sidepods, long tapering nose -->
+			<!--
+				Top-down F1 car in 2026 proportions and Gulf livery colours (no logos), nose right.
+				2026 rules: shorter wheelbase, narrower tyres, a narrower front wing, no beam wing,
+				slimmer sidepods. Drawn at 270×100 and scaled down.
+			-->
+			<svg viewBox="0 0 270 100" width={CAR_WIDTH} height={CAR_HEIGHT} overflow="visible">
+				<defs>
+					<!-- body shading: lighter down the middle, darker at the edges, so it looks rounded -->
+					<linearGradient id="{uid}-body" x1="0" y1="0" x2="0" y2="1">
+						<stop offset="0" stop-color="#5fa8d4" />
+						<stop offset="0.5" stop-color="#b3e2f8" />
+						<stop offset="1" stop-color="#5fa8d4" />
+					</linearGradient>
+					<filter id="{uid}-shadow" x="-10%" y="-30%" width="120%" height="160%">
+						<feGaussianBlur stdDeviation="5" />
+					</filter>
+				</defs>
+
+				<!-- soft shadow on the track -->
+				<ellipse cx="136" cy="56" rx="126" ry="40" fill="#0b1722" opacity="0.3" filter="url(#{uid}-shadow)" />
+
+				<!-- floor (the dark carbon edge visible around the bodywork) -->
 				<path
-					d="M10 15 L36 13 Q44 8 56 9 L70 11 Q78 14 86 16 L116 18.5 Q119 20 116 21.5 L86 24 Q78 26 70 29 L56 31 Q44 32 36 27 L10 25 Z"
-					fill="var(--gulf-blue)"
-					stroke="var(--navy)"
-					stroke-width="1.2"
+					d="M40 38 L68 31 L92 18 Q126 13 162 18 L188 33 L200 40 L200 60 L188 67 L162 82 Q126 87 92 82 L68 69 L40 62 Z"
+					fill="#17222d"
+				/>
+
+				<!-- suspension arms -->
+				<g stroke="#0b1722" stroke-width="2.4" stroke-linecap="round">
+					<line x1="51" y1="21" x2="66" y2="40" />
+					<line x1="59" y1="21" x2="84" y2="37" />
+					<line x1="51" y1="79" x2="66" y2="60" />
+					<line x1="59" y1="79" x2="84" y2="63" />
+					<line x1="210" y1="23" x2="194" y2="44" />
+					<line x1="218" y1="23" x2="202" y2="46" />
+					<line x1="210" y1="77" x2="194" y2="56" />
+					<line x1="218" y1="77" x2="202" y2="54" />
+				</g>
+
+				<!-- tyres: narrower for 2026, rears still wider than fronts, with a sheen along the tread -->
+				<g fill="#121417">
+					<rect x="30" y="2" width="42" height="21" rx="6" />
+					<rect x="30" y="77" width="42" height="21" rx="6" />
+					<rect x="196" y="6" width="32" height="18" rx="5" />
+					<rect x="196" y="76" width="32" height="18" rx="5" />
+				</g>
+				<g fill="#3a4048" opacity="0.8">
+					<rect x="34" y="4.5" width="34" height="2.5" rx="1.25" />
+					<rect x="34" y="93" width="34" height="2.5" rx="1.25" />
+					<rect x="199" y="8.5" width="26" height="2.2" rx="1.1" />
+					<rect x="199" y="89.3" width="26" height="2.2" rx="1.1" />
+				</g>
+
+				<!-- front wing: narrower for 2026 (inside the front tyres' outer edges), three elements;
+				     the last (blue) is the active-aero flap -->
+				<rect x="234" y="8" width="8" height="84" rx="2" fill="#0b1722" />
+				<rect x="243" y="11" width="5" height="78" rx="2" fill="var(--gulf-orange)" />
+				<rect x="249" y="14" width="5" height="72" rx="2" fill="var(--gulf-blue)" />
+				<rect x="232" y="5" width="26" height="4" rx="1.5" fill="#0b1722" />
+				<rect x="232" y="91" width="26" height="4" rx="1.5" fill="#0b1722" />
+
+				<!-- rear wing: two elements (the blue top flap is active aero), no beam wing below -->
+				<rect x="24" y="45" width="20" height="10" rx="2" fill="#0b1722" />
+				<rect x="6" y="12" width="20" height="76" rx="3" fill="#0b1722" />
+				<rect x="9" y="15" width="7" height="70" rx="2" fill="var(--gulf-orange)" />
+				<rect x="18" y="15" width="6" height="70" rx="2" fill="var(--gulf-blue)" />
+				<rect x="4" y="9" width="24" height="5" rx="1.5" fill="#0b1722" />
+				<rect x="4" y="86" width="24" height="5" rx="1.5" fill="#0b1722" />
+
+				<!-- bodywork: narrow gearbox, slim sidepods, cockpit, shorter nose -->
+				<path
+					d="M36 42 L60 40 Q76 38 90 31 Q98 20 118 19 L154 19 Q166 20 172 29 L178 38 L192 42 L238 46 Q251 48 253 50 Q251 52 238 54 L192 58 L178 62 L172 71 Q166 80 154 81 L118 81 Q98 80 90 69 Q76 62 60 60 L36 58 Z"
+					fill="url(#{uid}-body)"
+					stroke="#0b1722"
+					stroke-width="1.5"
 					stroke-linejoin="round"
 				/>
-				<!-- Gulf orange stripe down the centreline -->
-				<path d="M12 18 L104 18.8 L116 19.6 L116 20.4 L104 21.2 L12 22 Z" fill="var(--gulf-orange)" />
-				<!-- cockpit, helmet and halo -->
-				<ellipse cx="62" cy="20" rx="8" ry="4.6" fill="var(--navy)" />
-				<circle cx="60" cy="20" r="2.8" fill="var(--gulf-orange)" />
-				<path d="M56 16 Q70 13.5 72 20 Q70 26.5 56 24" fill="none" stroke="var(--navy)" stroke-width="1.6" />
-				<!-- front wing -->
-				<rect x="106" y="3" width="8" height="34" rx="1.5" fill="var(--navy)" />
-				<rect x="107.5" y="4.5" width="5" height="31" rx="1" fill="var(--gulf-blue)" />
+
+				<!-- sidepod cooling inlets -->
+				<g fill="#0b1722">
+					<path d="M148 20.5 Q160 20 167 27 L159 28 Q155 23.5 148 22.5 Z" />
+					<path d="M148 79.5 Q160 80 167 73 L159 72 Q155 76.5 148 77.5 Z" />
+				</g>
+
+				<!-- Gulf orange centre stripe with navy pinstripes, nose to tail -->
+				<path d="M38 45.5 L140 44.5 L192 46 L250 48.4 L250 51.6 L192 54 L140 55.5 L38 54.5 Z" fill="#0b1722" />
+				<path d="M38 47 L140 46 L192 47.5 L250 49.2 L250 50.8 L192 52.5 L140 54 L38 53 Z" fill="var(--gulf-orange)" />
+
+				<!-- gloss highlights along the sidepods -->
+				<g fill="none" stroke="#ffffff" stroke-width="1.6" stroke-linecap="round" opacity="0.45">
+					<path d="M100 24 Q120 20 146 21.5" />
+					<path d="M100 76 Q120 80 146 78.5" />
+				</g>
+
+				<!-- airbox intake above the driver's head -->
+				<ellipse cx="128" cy="50" rx="7" ry="5.5" fill="#0b1722" stroke="var(--gulf-orange)" stroke-width="1.2" />
+
+				<!-- cockpit, helmet (orange with a navy visor) and halo -->
+				<ellipse cx="158" cy="50" rx="13" ry="8.5" fill="#0b1722" />
+				<circle cx="155" cy="50" r="6.2" fill="var(--gulf-orange)" />
+				<ellipse cx="159.3" cy="50" rx="2.1" ry="4.2" fill="#0b1722" />
+				<path
+					d="M143 41.5 Q152 37.5 167 41.5 Q176 44 176 50 Q176 56 167 58.5 Q152 62.5 143 58.5"
+					fill="none"
+					stroke="#26313d"
+					stroke-width="2.6"
+				/>
+				<line x1="176" y1="50" x2="182" y2="50" stroke="#26313d" stroke-width="2.4" />
+
+				<!-- mirrors -->
+				<g fill="#0b1722">
+					<rect x="168" y="28" width="7" height="5" rx="1.5" />
+					<rect x="168" y="67" width="7" height="5" rx="1.5" />
+				</g>
 			</svg>
 		</div>
 	{/if}
@@ -150,8 +228,8 @@
 		position: absolute;
 		top: 0;
 		left: 0;
-		width: 120px;
-		height: 40px;
+		width: 127px;
+		height: 47px;
 		will-change: transform;
 	}
 
@@ -164,7 +242,7 @@
 	.speed-lines {
 		position: absolute;
 		right: 100%;
-		top: 7px;
+		top: 10px;
 		width: 80px;
 		height: 26px;
 		background:
