@@ -71,17 +71,20 @@
 		overflow: hidden;
 		isolation: isolate;
 		/* Moving off: the card settles back down softly */
-		transition: transform 0.5s cubic-bezier(0.33, 1, 0.68, 1);
+		top: 0;
+		transition: top 0.5s cubic-bezier(0.33, 1, 0.68, 1);
 	}
 
 	/*
-	 * Hovering on: the card lifts. (The stripe's transition lives only on its hover state
-	 * below, so it sweeps on hover but snaps straight back with no reverse sweep.)
+	 * Hovering on: the card lifts. This moves it with `top` rather than `transform`: a transform
+	 * makes the browser draw the card as a separate layer, and its rounded, clipped edge then
+	 * shows a thin light rim, like an outline. (The stripe's transition lives only on its hover
+	 * state below, so it sweeps on hover but snaps straight back with no reverse sweep.)
 	 */
 	article:hover,
 	article:focus-within {
-		transform: translateY(-6px);
-		transition: transform 0.6s cubic-bezier(0.2, 0.8, 0.2, 1);
+		top: -6px;
+		transition: top 0.6s cubic-bezier(0.2, 0.8, 0.2, 1);
 	}
 
 	/*
