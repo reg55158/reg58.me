@@ -47,7 +47,7 @@
 			const rect = wrap.getBoundingClientRect();
 			width = rect.width;
 			// 0 at the very top of the page; 1 at the moment the stripe disappears under the nav bar.
-			const navBottom = document.querySelector('header')?.getBoundingClientRect().bottom ?? 0;
+			const navBottom = document.querySelector<HTMLElement>('[data-site-header]')?.getBoundingClientRect().bottom ?? 0;
 			const finishScroll = rect.bottom + scrollY - navBottom;
 			progress = finishScroll > 0 ? Math.min(1, Math.max(0, scrollY / finishScroll)) : 1;
 

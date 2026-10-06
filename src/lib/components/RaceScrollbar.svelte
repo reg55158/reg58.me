@@ -26,10 +26,10 @@
 	const maxScroll = () => document.documentElement.scrollHeight - innerHeight;
 
 	function update() {
-		trackTop = (document.querySelector('header')?.getBoundingClientRect().height ?? 0) + GAP;
+		trackTop = (document.querySelector<HTMLElement>('[data-site-header]')?.getBoundingClientRect().height ?? 0) + GAP;
 		// The footer can only rise as high as the bottom of the window (at the end of the page),
 		// so ending the track one footer-height up means the handle never overlaps it.
-		trackBottom = (document.querySelector('footer')?.offsetHeight ?? 0) + GAP;
+		trackBottom = (document.querySelector<HTMLElement>('[data-site-footer]')?.offsetHeight ?? 0) + GAP;
 		scrollable = maxScroll() > 1;
 		if (!scrollable) return;
 		// Thumb size reflects how much of the page is visible; position reflects how far down we are.

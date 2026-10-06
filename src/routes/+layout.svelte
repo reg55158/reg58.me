@@ -37,7 +37,7 @@
 
 <RaceScrollbar />
 
-<header>
+<header data-site-header>
 	<div class="container bar">
 		<a class="logo" href="/">
 			<!-- Same file as the tab icon; alt is empty because the name right next to it says it -->
@@ -69,7 +69,7 @@
 	{@render children()}
 </main>
 
-<footer>
+<footer data-site-footer>
 	<div class="container foot">
 		<span class="muted">© {new Date().getFullYear()} {site.name}</span>
 		<span class="links">
