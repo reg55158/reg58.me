@@ -24,3 +24,6 @@ vite.config.ts.timestamp-*
 
 # Local tooling
 .claude/
+
+.vercel
+.env*
