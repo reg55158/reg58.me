@@ -128,7 +128,7 @@
 		z-index: 50;
 	}
 
-	/* Gulf orange handle with a thin navy outline so it stays visible over orange cards and footer */
+	/* Plain Gulf orange handle */
 	.thumb {
 		position: absolute;
 		top: 0;
@@ -136,7 +136,6 @@
 		width: 10px;
 		border-radius: 999px;
 		background-color: var(--gulf-orange);
-		box-shadow: 0 0 0 1.5px var(--navy);
 		touch-action: none;
 	}
 
