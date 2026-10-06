@@ -23,6 +23,15 @@ export const variables = defineEnvVars({
 		schema: optional,
 		description: 'Home Assistant long-lived access token.'
 	},
+	TOTP_SECRET: {
+		schema: (value) => {
+			if (!value) return undefined;
+			if (!/^[A-Z2-7]{16,}=*$/i.test(value)) throw new Error('TOTP_SECRET must be base32');
+			return value;
+		},
+		description:
+			'Shared secret for 6-digit login codes (Google Authenticator). Generate with `npm run setup-2fa`. Leave empty for password-only login.'
+	},
 	GITHUB_TOKEN: {
 		schema: optional,
 		description:
