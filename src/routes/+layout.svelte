@@ -1,5 +1,6 @@
 <script lang="ts">
 	import '../app.css';
+	import { onMount } from 'svelte';
 	import favicon from '#lib/assets/favicon.svg';
 	import RaceScrollbar from '#lib/components/RaceScrollbar.svelte';
 	import { page } from '$app/state';
@@ -12,6 +13,21 @@
 		{ href: '/', label: 'Home' },
 		{ href: '/projects', label: 'Projects' }
 	];
+
+	// While someone has another tab open, swap this tab's title; put the real one back on return.
+	onMount(() => {
+		let realTitle = document.title;
+		const onVisibilityChange = () => {
+			if (document.hidden) {
+				realTitle = document.title;
+				document.title = site.awayTitle;
+			} else {
+				document.title = realTitle;
+			}
+		};
+		document.addEventListener('visibilitychange', onVisibilityChange);
+		return () => document.removeEventListener('visibilitychange', onVisibilityChange);
+	});
 </script>
 
 <svelte:head>
