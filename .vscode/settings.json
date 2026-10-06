@@ -1,0 +1,8 @@
+{
+	// Only show the tasks defined in .vscode/tasks.json (Commit, Deploy)
+	"npm.autoDetect": "off",
+	"typescript.tsc.autoDetect": "off",
+	"grunt.autoDetect": "off",
+	"gulp.autoDetect": "off",
+	"jake.autoDetect": "off"
+}

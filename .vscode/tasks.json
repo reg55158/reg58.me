@@ -1,0 +1,31 @@
+{
+	"version": "2.0.0",
+	"tasks": [
+		{
+			"label": "Commit",
+			"detail": "Asks for a message, type-checks, then commits all changes",
+			"type": "process",
+			"command": "node",
+			"args": ["scripts/commit.js", "${input:commitMessage}"],
+			"problemMatcher": [],
+			"presentation": { "reveal": "always", "clear": true }
+		},
+		{
+			"label": "Deploy",
+			"detail": "Pushes to GitHub; Vercel then builds and publishes reg58.me",
+			"type": "process",
+			"command": "git",
+			"args": ["push"],
+			"problemMatcher": [],
+			"presentation": { "reveal": "always", "clear": true }
+		}
+	],
+	"inputs": [
+		{
+			"id": "commitMessage",
+			"type": "promptString",
+			"description": "Commit message (what did you change?)",
+			"default": "Update site"
+		}
+	]
+}
