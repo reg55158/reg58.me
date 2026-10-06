@@ -1,5 +1,6 @@
 <script lang="ts">
 	import LiveryStripe from '#lib/components/LiveryStripe.svelte';
+	import NowPlaying from '#lib/components/NowPlaying.svelte';
 	import ProjectCarousel from '#lib/components/ProjectCarousel.svelte';
 	import { site } from '#lib/site.ts';
 	import type { PageProps } from './$types';
@@ -11,13 +12,18 @@
 	<title>{site.title}</title>
 </svelte:head>
 
-<section class="hero container">
-	<p class="eyebrow">Hi, I'm {site.name} 👋</p>
-	<h1>{site.tagline}</h1>
-	<div class="cta">
-		<a class="btn primary" href="/projects">See my work</a>
-		<a class="btn" href="mailto:{site.email}">Get in touch</a>
+<section class="hero container" class:with-panel={data.showNowPlaying}>
+	<div>
+		<p class="eyebrow">Hi, I'm {site.name} 👋</p>
+		<h1>{site.tagline}</h1>
+		<div class="cta">
+			<a class="btn primary" href="/projects">See my work</a>
+			<a class="btn" href="mailto:{site.email}">Get in touch</a>
+		</div>
 	</div>
+	{#if data.showNowPlaying}
+		<NowPlaying />
+	{/if}
 </section>
 
 <div class="stripe">
@@ -62,6 +68,49 @@
 
 	.hero {
 		margin-top: 96px;
+	}
+
+	/*
+	 * With the Spotify panel, the hero becomes a full-width row: from where the page text starts
+	 * (the same left edge as every other section) to the scrollbar, split into two equal halves.
+	 * Text on the left half, panel centred in the right half.
+	 */
+	.hero.with-panel {
+		max-width: none;
+		/* = the left edge of the centred 1080px content column, or 16px on narrower screens */
+		padding-left: max(16px, calc((100vw - 1080px) / 2 + 16px));
+		padding-right: 18px; /* the custom scrollbar's width */
+		display: grid;
+		grid-template-columns: 1fr 1fr;
+		align-items: center;
+	}
+
+	/* Keeps a little space between the text and the middle line */
+	.hero.with-panel > div {
+		padding-right: 24px;
+	}
+
+	.hero.with-panel > :global(.now-playing) {
+		justify-self: center;
+	}
+
+	/* Below 1000px there isn't room for both side by side without squashing the headline,
+	   so the panel moves under the text */
+	@media (max-width: 1000px) {
+		.hero.with-panel {
+			padding-right: 16px;
+			grid-template-columns: 1fr;
+			gap: 32px;
+		}
+
+		.hero.with-panel > div {
+			padding-right: 0;
+		}
+
+		/* Stacked under the text, it lines up on the left with everything else */
+		.hero.with-panel > :global(.now-playing) {
+			justify-self: start;
+		}
 	}
 
 	.eyebrow {
@@ -122,6 +171,7 @@
 	}
 
 	@media (max-width: 720px) {
+		/* Phones: the panel drops below the text */
 		.hero {
 			margin-top: 56px;
 		}

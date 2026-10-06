@@ -9,6 +9,7 @@
 		"preview": "vite preview",
 		"set-password": "node scripts/set-password.js",
 		"setup-2fa": "node scripts/setup-2fa.js",
+		"setup-spotify": "node scripts/setup-spotify.js",
 		"prepare": "svelte-kit sync || echo ''",
 		"check": "svelte-kit sync && svelte-check --tsconfig ./tsconfig.json",
 		"check:watch": "svelte-kit sync && svelte-check --tsconfig ./tsconfig.json --watch",

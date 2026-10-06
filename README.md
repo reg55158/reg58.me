@@ -8,7 +8,8 @@ My personal site: a portfolio with a Gulf-livery racing theme, plus a private sm
 
 - **Portfolio**: project cards are pulled live from my public GitHub repos, shown in a swipeable carousel on the home page and a filterable grid on `/projects`.
 - **Smart home dashboard** (`/dashboard`, owner only): lights with dimming, switches, fans, thermostats, locks, blinds and sensors, grouped by room and refreshed every 10 seconds.
-- **Racing-inspired design**: Gulf blue and orange palette, livery stripes, and a custom cursor that trails and stretches with your movement (disabled on touch devices and when reduced motion is requested).
+- **Now playing**: a panel beside the intro shows what I'm listening to on Spotify (or the last song played), checked every few seconds through a small server endpoint that never exposes the Spotify keys.
+- **Racing-inspired design**: Gulf blue and orange palette, a livery stripe where a top-down 2026-style F1 car drives across as you scroll (shown complete when reduced motion is requested), and a custom overlay scrollbar so the stripes run edge to edge.
 
 ## Tech stack
 
@@ -62,6 +63,7 @@ Without Home Assistant settings, the dashboard uses demo devices, so you can try
 | `HA_URL` | No | Home Assistant URL; leave empty for demo devices |
 | `HA_TOKEN` | No | Home Assistant long-lived access token (use a non-admin user) |
 | `GITHUB_TOKEN` | No | Raises the GitHub API limit from 60 to 5,000 requests per hour |
+| `SPOTIFY_CLIENT_ID`, `SPOTIFY_CLIENT_SECRET`, `SPOTIFY_REFRESH_TOKEN` | No | Turn on the "now playing" panel (set up with `npm run setup-spotify`) |
 
 See `.env.example`. Never commit `.env`; it's in `.gitignore`.
 
@@ -88,3 +90,4 @@ See `.env.example`. Never commit `.env`; it's in `.gitignore`.
 | `npm run build` | Production build |
 | `npm run set-password` | Set or change the dashboard password |
 | `npm run setup-2fa` | Turn on two-factor codes and show a QR code to scan |
+| `npm run setup-spotify` | Connect Spotify for the "now playing" panel |
