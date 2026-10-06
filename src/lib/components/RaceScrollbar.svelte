@@ -8,22 +8,28 @@
 	import { onMount } from 'svelte';
 
 	const MIN_THUMB = 48;
+	// Breathing room so the handle never touches the nav bar or the bottom of the window.
+	const GAP = 8;
 
 	let active = $state(false);
 	let scrollable = $state(false); // false when the page is too short to scroll
 	let dragging = $state(false);
 	let trackTop = $state(0); // the track starts below the sticky nav bar
+	let trackBottom = $state(GAP); // ...and ends above the footer (see update())
 	let thumbTop = $state(0); // relative to the track
 	let thumbHeight = $state(0);
 
 	let dragStartY = 0;
 	let dragStartScroll = 0;
 
-	const trackHeight = () => innerHeight - trackTop;
+	const trackHeight = () => innerHeight - trackTop - trackBottom;
 	const maxScroll = () => document.documentElement.scrollHeight - innerHeight;
 
 	function update() {
-		trackTop = document.querySelector('header')?.getBoundingClientRect().height ?? 0;
+		trackTop = (document.querySelector('header')?.getBoundingClientRect().height ?? 0) + GAP;
+		// The footer can only rise as high as the bottom of the window (at the end of the page),
+		// so ending the track one footer-height up means the handle never overlaps it.
+		trackBottom = (document.querySelector('footer')?.offsetHeight ?? 0) + GAP;
 		scrollable = maxScroll() > 1;
 		if (!scrollable) return;
 		// Thumb size reflects how much of the page is visible; position reflects how far down we are.
@@ -87,6 +93,7 @@
 		class="track"
 		role="presentation"
 		style:top="{trackTop}px"
+		style:bottom="{trackBottom}px"
 		onpointerdown={trackClick}
 		aria-hidden="true"
 	>
@@ -117,7 +124,6 @@
 	.track {
 		position: fixed;
 		right: 0;
-		bottom: 0;
 		width: 18px;
 		z-index: 50;
 	}
