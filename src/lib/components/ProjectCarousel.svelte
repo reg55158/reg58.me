@@ -29,9 +29,9 @@
 	<!-- Scrollable regions must be focusable so keyboard users can scroll them with the arrow keys -->
 	<!-- svelte-ignore a11y_no_noninteractive_tabindex -->
 	<div class="track" bind:this={track} onscroll={updateEnds} tabindex="0">
-		{#each projects as project (project.title)}
+		{#each projects as project, i (project.title)}
 			<div class="slide">
-				<ProjectCard {project} />
+				<ProjectCard {project} number={i + 1} />
 			</div>
 		{/each}
 	</div>

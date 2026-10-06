@@ -1,7 +1,8 @@
 <script lang="ts">
 	import type { Project } from '#lib/projects.ts';
 
-	let { project }: { project: Project } = $props();
+	/** `number` is the card's race number (#01, #02…), shown in the roundel. */
+	let { project, number }: { project: Project; number?: number } = $props();
 
 	const statusLabel = {
 		live: 'Live',
@@ -12,33 +13,48 @@
 </script>
 
 <article>
-	<div class="meta">
+	<!-- Navy "number board" across the top, like the nose of a race car -->
+	<header class="board">
+		{#if number}
+			<span class="roundel" aria-label="Project {number}">{String(number).padStart(2, '0')}</span>
+		{/if}
 		<span class="status {project.status}">{statusLabel[project.status]}</span>
-		<span class="muted">{project.year}</span>
-	</div>
-	<h3>{project.title}</h3>
-	<p class="muted">{project.summary}</p>
-	<div class="tags">
-		{#each project.tags as tag}
-			<span class="tag">{tag}</span>
-		{/each}
-	</div>
-	{#if project.links?.length}
-		<div class="links">
-			<!-- The first link is the card's main link: it stretches to cover the whole card -->
-			{#each project.links as link, i}
-				<a
-					href={link.href}
-					target="_blank"
-					rel="noopener noreferrer"
-					class:main={i === 0}
-					aria-label="{link.label}: {project.title} (opens in a new tab)"
-				>
-					{link.label} →
-				</a>
+	</header>
+
+	<div class="body">
+		<h3>{project.title}</h3>
+		<p class="summary">{project.summary}</p>
+		<div class="tags">
+			{#each project.tags as tag}
+				<span class="tag">{tag}</span>
 			{/each}
 		</div>
-	{/if}
+
+		<footer>
+			<span class="facts">
+				<span>{project.year}</span>
+				{#if project.stars}
+					<span aria-label="{project.stars} stars on GitHub">★ {project.stars}</span>
+				{/if}
+			</span>
+			{#if project.links?.length}
+				<span class="links">
+					<!-- The first link is the card's main link: it stretches to cover the whole card -->
+					{#each project.links as link, i}
+						<a
+							href={link.href}
+							target="_blank"
+							rel="noopener noreferrer"
+							class:main={i === 0}
+							aria-label="{link.label}: {project.title} (opens in a new tab)"
+						>
+							{link.label} →
+						</a>
+					{/each}
+				</span>
+			{/if}
+		</footer>
+	</div>
 </article>
 
 <style>
@@ -46,32 +62,26 @@
 	article {
 		display: flex;
 		flex-direction: column;
-		gap: 10px;
-		padding: 22px;
 		background: var(--gulf-orange);
 		color: var(--navy);
-		border: 1px solid transparent;
 		border-radius: var(--radius);
 		box-shadow: var(--shadow);
-		/* For the hover stripe: keep it inside the card and behind the content */
+		/* For the hover stripe and stretched link: keep them inside the card */
 		position: relative;
 		overflow: hidden;
 		isolation: isolate;
+		/* Moving off: the card settles back down softly */
+		transition: transform 0.5s cubic-bezier(0.33, 1, 0.68, 1);
 	}
 
 	/*
-	 * Transitions live only on the hover state, so hovering on animates
-	 * and moving off snaps straight back with no reverse animation.
+	 * Hovering on: the card lifts. (The stripe's transition lives only on its hover state
+	 * below, so it sweeps on hover but snaps straight back with no reverse sweep.)
 	 */
 	article:hover,
 	article:focus-within {
-		border-color: var(--navy);
 		transform: translateY(-6px);
-		box-shadow: 0 16px 32px rgb(11 23 34 / 0.25);
-		transition:
-			border-color 0.15s,
-			transform 0.6s cubic-bezier(0.2, 0.8, 0.2, 1),
-			box-shadow 0.6s;
+		transition: transform 0.6s cubic-bezier(0.2, 0.8, 0.2, 1);
 	}
 
 	/*
@@ -103,29 +113,39 @@
 		transition: transform 1.4s cubic-bezier(0.2, 0.8, 0.2, 1);
 	}
 
-	article .muted,
-	a {
-		color: var(--navy);
-	}
-
-	h3 {
-		margin: 0;
-		font-size: 1.15rem;
-	}
-
-	p {
-		margin: 0;
-		flex: 1;
-	}
-
-	.meta {
+	/*
+	 * Number board: navy with a diagonal Gulf blue stripe and an orange pinstripe.
+	 * Each colour change blends over 1px: browsers don't smooth hard edges in angled
+	 * gradients, so without it the diagonal edges look jagged.
+	 */
+	.board {
 		display: flex;
+		align-items: center;
 		justify-content: space-between;
-		font-size: 0.85rem;
+		gap: 12px;
+		padding: 14px 18px;
+		background: linear-gradient(
+			115deg,
+			var(--navy) 58%,
+			var(--gulf-blue) calc(58% + 1px) 72%,
+			var(--gulf-orange) calc(72% + 1px) 75%,
+			var(--navy) calc(75% + 1px)
+		);
 	}
 
-	.meta {
-		align-items: center;
+	/* White race-number roundel, like the site icon */
+	.roundel {
+		display: grid;
+		place-items: center;
+		width: 44px;
+		height: 44px;
+		border-radius: 50%;
+		background: var(--surface);
+		border: 3px solid var(--gulf-orange);
+		color: var(--navy);
+		font-family: var(--mono);
+		font-weight: 800;
+		font-size: 1.05rem;
 	}
 
 	/* Navy pill with a coloured dot for the status */
@@ -133,9 +153,11 @@
 		display: inline-flex;
 		align-items: center;
 		gap: 6px;
-		padding: 2px 10px;
+		margin-left: auto;
+		padding: 3px 10px;
 		border-radius: 999px;
 		background: var(--navy);
+		border: 1px solid rgb(243 248 251 / 0.25);
 		color: var(--surface);
 		font-weight: 600;
 		font-size: 0.78rem;
@@ -164,16 +186,57 @@
 		background: #9aa9b5;
 	}
 
+	.body {
+		display: flex;
+		flex-direction: column;
+		gap: 10px;
+		flex: 1;
+		padding: 18px 20px 16px;
+	}
+
+	h3 {
+		margin: 0;
+		font-size: 1.25rem;
+		letter-spacing: -0.01em;
+	}
+
+	.summary {
+		margin: 0;
+		flex: 1;
+	}
+
 	.tags {
 		display: flex;
 		flex-wrap: wrap;
 		gap: 6px;
 	}
 
+	/* Year, stars and links, separated from the rest by a thin navy rule */
+	footer {
+		display: flex;
+		align-items: center;
+		justify-content: space-between;
+		gap: 12px;
+		margin-top: 4px;
+		padding-top: 10px;
+		border-top: 1px solid rgb(11 23 34 / 0.25);
+		font-size: 0.85rem;
+	}
+
+	.facts {
+		display: flex;
+		gap: 12px;
+		font-family: var(--mono);
+	}
+
 	.links {
 		display: flex;
 		gap: 16px;
-		font-weight: 500;
+		font-weight: 600;
+	}
+
+	a {
+		color: var(--navy);
 	}
 
 	/* "Stretched link": an invisible layer from the main link covers the whole card, so clicking
