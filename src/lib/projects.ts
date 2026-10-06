@@ -7,6 +7,8 @@ export interface Project {
 	tags: string[];
 	year: number;
 	status: 'live' | 'in-progress' | 'complete' | 'archived';
+	/** GitHub stars, filled in automatically for public repos */
+	stars?: number;
 	links?: { label: string; href: string }[];
 }
 

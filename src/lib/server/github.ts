@@ -1,3 +1,4 @@
+import sanitizeHtml from 'sanitize-html';
 import { GITHUB_TOKEN } from '$app/env/private';
 import { extraProjects, type Project } from '#lib/projects.ts';
 import { site } from '#lib/site.ts';
@@ -12,6 +13,7 @@ interface GithubRepo {
 	fork: boolean;
 	archived: boolean;
 	pushed_at: string;
+	stargazers_count: number;
 }
 
 const CACHE_MS = 10 * 60 * 1000;
@@ -45,13 +47,18 @@ export async function getProjects(fetch: typeof globalThis.fetch): Promise<Proje
 		const own = ((await res.json()) as GithubRepo[]).filter((r) => !r.fork);
 		const repoByName = new Map(own.map((r) => [r.name.toLowerCase(), r]));
 
-		// Hand-written cards whose repo is public get a "Code" link to it automatically.
+		// Hand-written cards whose repo is public get a "Code" link and star count automatically.
 		const extras = extraProjects.map((project) => {
 			const repo = repoByName.get(project.title.toLowerCase());
 			const hasCodeLink = project.links?.some((l) => l.href === repo?.html_url);
-			return repo && !hasCodeLink
-				? { ...project, links: [...(project.links ?? []), { label: 'Code', href: repo.html_url }] }
-				: project;
+			if (!repo) return project;
+			return {
+				...project,
+				stars: repo.stargazers_count,
+				links: hasCodeLink
+					? project.links
+					: [...(project.links ?? []), { label: 'Code', href: repo.html_url }]
+			};
 		});
 
 		// Repos with a hand-written card are shown once, as that card.
@@ -89,9 +96,72 @@ function toProject(repo: GithubRepo): Project {
 		),
 		year: pushed.getFullYear(),
 		status,
+		stars: repo.stargazers_count,
 		links: [
 			...(homepage ? [{ label: 'Visit', href: homepage }] : []),
 			{ label: 'Code', href: repo.html_url }
 		]
 	};
+}
+
+/*
+ * Your GitHub profile README (the README in the repo named after your account), as HTML.
+ * GitHub renders the Markdown for us; we then clean it again with an allow-list so only
+ * formatting, links and images can reach the page, never scripts or styles.
+ */
+let readmeCache: { html: string | null; fetchedAt: number } | null = null;
+
+export async function getProfileReadme(fetch: typeof globalThis.fetch): Promise<string | null> {
+	if (readmeCache && Date.now() - readmeCache.fetchedAt < CACHE_MS) return readmeCache.html;
+
+	try {
+		const res = await fetch(
+			`https://api.github.com/repos/${site.github}/${site.github}/readme`,
+			{
+				headers: {
+					Accept: 'application/vnd.github.html+json',
+					'User-Agent': 'reg58.me',
+					...(GITHUB_TOKEN && { Authorization: `Bearer ${GITHUB_TOKEN}` })
+				},
+				signal: AbortSignal.timeout(5000)
+			}
+		);
+		// 404 = no profile README; just don't show the section.
+		const html = res.ok ? cleanReadme(await res.text()) : null;
+		readmeCache = { html, fetchedAt: Date.now() };
+		return html;
+	} catch (e) {
+		console.error(e);
+		return readmeCache?.html ?? null;
+	}
+}
+
+function cleanReadme(html: string): string {
+	return sanitizeHtml(html, {
+		allowedTags: [
+			'h1', 'h2', 'h3', 'h4', 'p', 'br', 'hr', 'a', 'img', 'picture', 'source',
+			'ul', 'ol', 'li', 'strong', 'em', 'b', 'i', 'code', 'pre', 'blockquote',
+			'table', 'thead', 'tbody', 'tr', 'th', 'td', 'div', 'span', 'details', 'summary'
+		],
+		allowedAttributes: {
+			// target/rel/loading are added by transformTags below, so they must be allowed too
+			a: ['href', 'target', 'rel'],
+			img: ['src', 'alt', 'width', 'height', 'loading'],
+			source: ['srcset', 'media'],
+			'*': ['align']
+		},
+		// Only real web links and images (no javascript: or data: URLs).
+		allowedSchemes: ['https', 'http', 'mailto'],
+		// Drop GitHub's little "link to this heading" anchors and their icons.
+		exclusiveFilter: (frame) => frame.tag === 'a' && !frame.text.trim() && frame.attribs.href?.startsWith('#'),
+		transformTags: {
+			// Links in the README open in a new tab.
+			a: (tagName, attribs) => ({
+				tagName,
+				attribs: { ...attribs, target: '_blank', rel: 'noopener noreferrer' }
+			}),
+			// Images load lazily so they don't slow the page down.
+			img: (tagName, attribs) => ({ tagName, attribs: { ...attribs, loading: 'lazy' } })
+		}
+	});
 }
