@@ -1,6 +1,7 @@
 import type { Device, DeviceCommand } from '#lib/devices.ts';
 import type { DeviceProvider } from './index.ts';
 import { applyCommand } from './apply.ts';
+import { fetchEntityInfo, type EntityInfo } from './ha-registry.ts';
 
 interface HAState {
 	entity_id: string;
@@ -9,7 +10,7 @@ interface HAState {
 }
 
 const ENTITY_ID = /^[a-z_]+\.[a-z0-9_]+$/;
-const AREA_CACHE_MS = 5 * 60 * 1000;
+const REGISTRY_CACHE_MS = 5 * 60 * 1000;
 
 /**
  * Home Assistant often exposes dozens of sensors per device (battery, signal strength, uptime…).
@@ -24,13 +25,13 @@ function shouldShowSensor(s: HAState): boolean {
 	return ['temperature', 'humidity'].includes(s.attributes.device_class);
 }
 
-// Jinja template that returns { entity_id: area_name } for every entity assigned to an area.
-const AREA_TEMPLATE = `{% set ns = namespace(out={}) %}{% for s in states %}{% set a = area_name(s.entity_id) %}{% if a %}{% set ns.out = dict(ns.out, **{s.entity_id: a}) %}{% endif %}{% endfor %}{{ ns.out | tojson }}`;
-
-/** Talks to Home Assistant's REST API: https://developers.home-assistant.io/docs/api/rest */
+/**
+ * Talks to Home Assistant's REST API (states + services): https://developers.home-assistant.io/docs/api/rest
+ * Areas and hidden flags come from the WebSocket registries instead (see ha-registry.ts).
+ */
 export class HomeAssistantProvider implements DeviceProvider {
 	readonly name = 'Home Assistant';
-	#areas: { map: Record<string, string>; fetchedAt: number } | null = null;
+	#registry: { info: Map<string, EntityInfo>; fetchedAt: number } | null = null;
 
 	constructor(
 		private url: string,
@@ -51,28 +52,29 @@ export class HomeAssistantProvider implements DeviceProvider {
 		return res;
 	}
 
-	async #getAreas(): Promise<Record<string, string>> {
-		if (this.#areas && Date.now() - this.#areas.fetchedAt < AREA_CACHE_MS) return this.#areas.map;
+	async #getRegistry(): Promise<Map<string, EntityInfo>> {
+		if (this.#registry && Date.now() - this.#registry.fetchedAt < REGISTRY_CACHE_MS) {
+			return this.#registry.info;
+		}
 		try {
-			const res = await this.#request('/template', {
-				method: 'POST',
-				body: JSON.stringify({ template: AREA_TEMPLATE })
-			});
-			const map = JSON.parse(await res.text());
-			this.#areas = { map, fetchedAt: Date.now() };
-			return map;
-		} catch {
-			return this.#areas?.map ?? {};
+			const info = await fetchEntityInfo(this.url, this.token);
+			this.#registry = { info, fetchedAt: Date.now() };
+			return info;
+		} catch (e) {
+			// Rooms and hiding are nice-to-have; keep the dashboard working with the last known data.
+			console.error(e);
+			return this.#registry?.info ?? new Map();
 		}
 	}
 
 	async list() {
-		const [states, areas] = await Promise.all([
+		const [states, registry] = await Promise.all([
 			this.#request('/states').then((r) => r.json() as Promise<HAState[]>),
-			this.#getAreas()
+			this.#getRegistry()
 		]);
 		return states
-			.map((s) => toDevice(s, areas[s.entity_id]))
+			.filter((s) => !registry.get(s.entity_id)?.hidden)
+			.map((s) => toDevice(s, registry.get(s.entity_id)?.area))
 			.filter((d): d is Device => d !== null)
 			.sort((a, b) => a.room.localeCompare(b.room) || a.name.localeCompare(b.name));
 	}
@@ -81,7 +83,7 @@ export class HomeAssistantProvider implements DeviceProvider {
 		if (!ENTITY_ID.test(id)) return null;
 
 		const current = await this.#getState(id);
-		const device = current && toDevice(current, (await this.#getAreas())[id]);
+		const device = current && toDevice(current, (await this.#getRegistry()).get(id)?.area);
 		if (!device) return null;
 
 		const call = toServiceCall(device, command);
