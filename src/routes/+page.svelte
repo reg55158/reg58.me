@@ -14,7 +14,7 @@
 
 <section class="hero container" class:with-panel={data.showNowPlaying}>
 	<div>
-		<p class="eyebrow">Hi, I'm {site.name} 👋</p>
+		<p class="eyebrow">Hey, I'm {site.name} 👋</p>
 		<h1>{site.tagline}</h1>
 		<div class="cta">
 			<a class="btn primary" href="/projects">See my work</a>
@@ -114,8 +114,9 @@
 	}
 
 	.eyebrow {
-		font-family: var(--mono);
 		color: var(--accent);
+		font-size: 1.2rem;
+		font-weight: 600;
 		margin: 0 0 12px;
 	}
 

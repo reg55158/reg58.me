@@ -3,7 +3,7 @@
 export const site = {
 	name: 'Reg',
 	title: 'Reg',
-	tagline: 'I build software, tinker with hardware, and automate everything I can.',
+	tagline: 'Building cool stuff, one lap at a time.',
 	description:
 		'Portfolio of Reg: software projects, experiments, and things I am building next.',
 	about: [
@@ -13,7 +13,7 @@ export const site = {
 	skills: ['TypeScript', 'Svelte', 'Node.js', 'Python', 'Home Assistant', 'Linux', 'Docker'],
 	email: 'reg@reg58.me',
 	// Shown in the browser tab while someone has switched to a different tab.
-	awayTitle: '🏎️ Box, box! Come back…',
+	awayTitle: 'Come back soon 👋',
 	// Public repos from this GitHub account become the project cards.
 	github: 'reg55158',
 	links: [
