@@ -2,7 +2,7 @@
 
 export const site = {
 	name: 'reg58',
-	title: 'reg58 — Developer & Builder',
+	title: 'reg58',
 	tagline: 'I build software, tinker with hardware, and automate everything I can.',
 	description:
 		'Portfolio of reg58: software projects, experiments, and things I am building next.',
