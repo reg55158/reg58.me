@@ -1,4 +1,4 @@
-import sanitizeHtml from 'sanitize-html';
+import xssModule from 'xss';
 import { GITHUB_TOKEN } from '$app/env/private';
 import { extraProjects, type Project } from '#lib/projects.ts';
 import { site } from '#lib/site.ts';
@@ -136,32 +136,45 @@ export async function getProfileReadme(fetch: typeof globalThis.fetch): Promise<
 	}
 }
 
-function cleanReadme(html: string): string {
-	return sanitizeHtml(html, {
-		allowedTags: [
-			'h1', 'h2', 'h3', 'h4', 'p', 'br', 'hr', 'a', 'img', 'picture', 'source',
-			'ul', 'ol', 'li', 'strong', 'em', 'b', 'i', 'code', 'pre', 'blockquote',
-			'table', 'thead', 'tbody', 'tr', 'th', 'td', 'div', 'span', 'details', 'summary'
-		],
-		allowedAttributes: {
-			// target/rel/loading are added by transformTags below, so they must be allowed too
-			a: ['href', 'target', 'rel'],
-			img: ['src', 'alt', 'width', 'height', 'loading'],
-			source: ['srcset', 'media'],
-			'*': ['align']
-		},
-		// Only real web links and images (no javascript: or data: URLs).
-		allowedSchemes: ['https', 'http', 'mailto'],
-		// Drop GitHub's little "link to this heading" anchors and their icons.
-		exclusiveFilter: (frame) => frame.tag === 'a' && !frame.text.trim() && frame.attribs.href?.startsWith('#'),
-		transformTags: {
-			// Links in the README open in a new tab.
-			a: (tagName, attribs) => ({
-				tagName,
-				attribs: { ...attribs, target: '_blank', rel: 'noopener noreferrer' }
-			}),
-			// Images load lazily so they don't slow the page down.
-			img: (tagName, attribs) => ({ tagName, attribs: { ...attribs, loading: 'lazy' } })
+// xss is an older-style (CommonJS) package: on Vercel's Node only its default export works,
+// so take the pieces from that and give them their proper types.
+const { FilterXSS, escapeAttrValue, safeAttrValue } = xssModule as unknown as typeof import('xss');
+
+// Only these tags and attributes survive; everything else (scripts, styles, iframes,
+// event handlers like onerror, inline style) is stripped.
+const readmeFilter = new FilterXSS({
+	whiteList: {
+		h1: ['align'], h2: ['align'], h3: ['align'], h4: ['align'],
+		p: ['align'], div: ['align'], span: [], br: [], hr: [],
+		a: ['href'], img: ['src', 'alt', 'width', 'height', 'align'],
+		picture: [], source: ['srcset', 'media'],
+		ul: [], ol: [], li: [], strong: [], em: [], b: [], i: [], code: [], pre: [], blockquote: [],
+		table: [], thead: [], tbody: [], tr: [], th: ['align'], td: ['align'],
+		details: [], summary: []
+	},
+	// Remove tags that aren't allowed (rather than showing them as text), and drop the
+	// contents of script/style entirely.
+	stripIgnoreTag: true,
+	stripIgnoreTagBody: ['script', 'style', 'svg'],
+	// Links and images must be real web addresses: no javascript: or data: URLs.
+	safeAttrValue(tag, name, value, cssFilter) {
+		if (name === 'href' || name === 'src' || name === 'srcset') {
+			const url = value.trim();
+			if (name === 'href' && url.startsWith('mailto:')) return url;
+			return /^https?:\/\//i.test(url) ? escapeAttrValue(url) : '';
 		}
-	});
+		return safeAttrValue(tag, name, value, cssFilter);
+	}
+});
+
+function cleanReadme(html: string): string {
+	// GitHub adds a little "link to this heading" anchor next to each heading; drop them.
+	const withoutAnchors = html.replace(/<a [^>]*class="anchor"[^>]*>[\s\S]*?<\/a>/g, '');
+	return (
+		readmeFilter
+			.process(withoutAnchors)
+			// After cleaning, add fixed safe extras: links open in a new tab, images load lazily.
+			.replace(/<a /g, '<a target="_blank" rel="noopener noreferrer" ')
+			.replace(/<img /g, '<img loading="lazy" ')
+	);
 }
