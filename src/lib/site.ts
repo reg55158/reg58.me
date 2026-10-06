@@ -11,7 +11,7 @@ export const site = {
 		"I'm currently open to new projects and collaborations. If you have something interesting in mind, get in touch."
 	],
 	skills: ['TypeScript', 'Svelte', 'Node.js', 'Python', 'Home Assistant', 'Linux', 'Docker'],
-	email: 'hello@reg58.me',
+	email: 'reg@reg58.me',
 	links: [
 		{ label: 'GitHub', href: 'https://github.com/' },
 		{ label: 'LinkedIn', href: 'https://www.linkedin.com/' }
