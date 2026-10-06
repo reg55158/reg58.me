@@ -1,6 +1,7 @@
 <script lang="ts">
 	import '../app.css';
 	import favicon from '#lib/assets/favicon.svg';
+	import RaceScrollbar from '#lib/components/RaceScrollbar.svelte';
 	import { page } from '$app/state';
 	import { site } from '#lib/site.ts';
 	import type { LayoutProps } from './$types';
@@ -18,9 +19,15 @@
 	<meta name="description" content={site.description} />
 </svelte:head>
 
+<RaceScrollbar />
+
 <header>
 	<div class="container bar">
-		<a class="logo" href="/">{site.name}</a>
+		<a class="logo" href="/">
+			<!-- Same file as the tab icon; alt is empty because the name right next to it says it -->
+			<img src={favicon} alt="" width="34" height="34" />
+			{site.name}
+		</a>
 		<nav>
 			{#each nav as item}
 				<a href={item.href} aria-current={page.url.pathname === item.href ? 'page' : undefined}>
@@ -71,13 +78,13 @@
 		flex: 1;
 	}
 
+	/* Gulf orange bar with a navy livery stripe along the bottom */
 	header {
 		position: sticky;
 		top: 0;
 		z-index: 10;
-		background: color-mix(in srgb, var(--bg) 85%, transparent);
-		backdrop-filter: blur(10px);
-		border-bottom: 1px solid var(--border);
+		background: var(--gulf-orange);
+		border-bottom: 4px solid var(--navy);
 	}
 
 	.bar {
@@ -89,10 +96,24 @@
 	}
 
 	.logo {
+		display: flex;
+		align-items: center;
+		gap: 10px;
 		font-family: var(--mono);
 		font-weight: 700;
 		font-size: 1.1rem;
-		color: var(--text);
+		color: var(--navy);
+	}
+
+	.logo:hover {
+		text-decoration: none;
+	}
+
+	.logo img {
+		display: block;
+		/* Thin navy outline so the icon's blue edge stands out against the orange bar */
+		border-radius: 8px;
+		box-shadow: 0 0 0 1.5px var(--navy);
 	}
 
 	nav {
@@ -105,20 +126,22 @@
 	.link {
 		padding: 6px 10px;
 		border-radius: 8px;
-		color: var(--text-muted);
+		color: var(--navy);
 		font: inherit;
 		font-size: 0.95rem;
+		font-weight: 500;
 	}
 
 	nav a:hover,
 	.link:hover {
-		color: var(--text);
-		background: var(--surface-2);
+		background: rgb(11 23 34 / 0.12);
 		text-decoration: none;
 	}
 
+	/* Current page: navy pill, like a race number board */
 	nav a[aria-current='page'] {
-		color: var(--text);
+		color: var(--gulf-orange);
+		background: var(--navy);
 	}
 
 	nav form {
@@ -131,9 +154,18 @@
 		cursor: pointer;
 	}
 
+	/* Matches the nav bar: Gulf orange with a navy stripe */
 	footer {
-		border-top: 1px solid var(--border);
 		margin-top: 64px;
+		background: var(--gulf-orange);
+		border-top: 4px solid var(--navy);
+		color: var(--navy);
+	}
+
+	footer a,
+	footer .muted {
+		color: var(--navy);
+		font-weight: 500;
 	}
 
 	.foot {

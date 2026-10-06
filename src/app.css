@@ -32,13 +32,18 @@
 	box-sizing: border-box;
 }
 
+/* The page scrollbar is drawn by RaceScrollbar.svelte so the nav and stripes can run edge to edge. */
+
 html {
 	-webkit-text-size-adjust: 100%;
 }
 
 body {
 	margin: 0;
-	background: var(--bg);
+	/* Faint diagonal "speed lines" over the Gulf blue */
+	background:
+		repeating-linear-gradient(-62deg, transparent 0 26px, rgb(11 23 34 / 0.05) 26px 28px),
+		var(--bg);
 	color: var(--text);
 	font-family: var(--font);
 	line-height: 1.6;
