@@ -22,5 +22,10 @@ export const variables = defineEnvVars({
 	HA_TOKEN: {
 		schema: optional,
 		description: 'Home Assistant long-lived access token.'
+	},
+	GITHUB_TOKEN: {
+		schema: optional,
+		description:
+			'Optional GitHub token (no scopes needed) to raise the API limit from 60 to 5,000 requests/hour.'
 	}
 });

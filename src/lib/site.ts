@@ -12,8 +12,10 @@ export const site = {
 	],
 	skills: ['TypeScript', 'Svelte', 'Node.js', 'Python', 'Home Assistant', 'Linux', 'Docker'],
 	email: 'reg@reg58.me',
+	// Public repos from this GitHub account become the project cards.
+	github: 'reg55158',
 	links: [
-		{ label: 'GitHub', href: 'https://github.com/' },
+		{ label: 'GitHub', href: 'https://github.com/reg55158' },
 		{ label: 'LinkedIn', href: 'https://www.linkedin.com/' }
 	]
 };

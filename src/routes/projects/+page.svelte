@@ -1,11 +1,15 @@
 <script lang="ts">
 	import ProjectCard from '#lib/components/ProjectCard.svelte';
-	import { projects } from '#lib/projects.ts';
 	import { site } from '#lib/site.ts';
+	import type { PageProps } from './$types';
 
-	const allTags = [...new Set(projects.flatMap((p) => p.tags))].sort();
+	let { data }: PageProps = $props();
+
+	let allTags = $derived([...new Set(data.projects.flatMap((p) => p.tags))].sort());
 	let selected = $state<string | null>(null);
-	let visible = $derived(selected ? projects.filter((p) => p.tags.includes(selected!)) : projects);
+	let visible = $derived(
+		selected ? data.projects.filter((p) => p.tags.includes(selected!)) : data.projects
+	);
 </script>
 
 <svelte:head>

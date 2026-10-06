@@ -1,9 +1,10 @@
 <script lang="ts">
-	import ProjectCard from '#lib/components/ProjectCard.svelte';
-	import { projects } from '#lib/projects.ts';
+	import LiveryStripe from '#lib/components/LiveryStripe.svelte';
+	import ProjectCarousel from '#lib/components/ProjectCarousel.svelte';
 	import { site } from '#lib/site.ts';
+	import type { PageProps } from './$types';
 
-	const featured = projects.filter((p) => p.featured);
+	let { data }: PageProps = $props();
 </script>
 
 <svelte:head>
@@ -19,16 +20,16 @@
 	</div>
 </section>
 
+<div class="stripe">
+	<LiveryStripe />
+</div>
+
 <section class="container">
 	<div class="section-head">
-		<h2>Featured projects</h2>
+		<h2>Projects</h2>
 		<a href="/projects">All projects →</a>
 	</div>
-	<div class="grid">
-		{#each featured as project}
-			<ProjectCard {project} />
-		{/each}
-	</div>
+	<ProjectCarousel projects={data.projects} />
 </section>
 
 <section class="container about">
@@ -88,11 +89,8 @@
 		gap: 16px;
 	}
 
-	.grid {
-		display: grid;
-		grid-template-columns: repeat(auto-fill, minmax(min(100%, 300px), 1fr));
-		gap: 16px;
-		margin-top: 16px;
+	.stripe {
+		margin-top: 64px;
 	}
 
 	.about {
