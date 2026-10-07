@@ -10,6 +10,16 @@
 		complete: 'Complete',
 		archived: 'Archived'
 	};
+
+	/** Links to my own sites (reg58.me, f1.reg58.me…) stay in this tab; everything else opens a new one. */
+	function ownSite(href: string): boolean {
+		try {
+			const host = new URL(href).hostname;
+			return host === 'reg58.me' || host.endsWith('.reg58.me');
+		} catch {
+			return false;
+		}
+	}
 </script>
 
 <article>
@@ -41,12 +51,13 @@
 				<span class="links">
 					<!-- The first link is the card's main link: it stretches to cover the whole card -->
 					{#each project.links as link, i}
+						{@const sameTab = ownSite(link.href)}
 						<a
 							href={link.href}
-							target="_blank"
-							rel="noopener noreferrer"
+							target={sameTab ? undefined : '_blank'}
+							rel={sameTab ? undefined : 'noopener noreferrer'}
 							class:main={i === 0}
-							aria-label="{link.label}: {project.title} (opens in a new tab)"
+							aria-label="{link.label}: {project.title}{sameTab ? '' : ' (opens in a new tab)'}"
 						>
 							{link.label} →
 						</a>
