@@ -84,6 +84,7 @@ function toProject(repo: GithubRepo): Project {
 
 	let status: Project['status'];
 	if (repo.archived) status = 'archived';
+	else if (site.completeProjects.includes(repo.name)) status = 'complete';
 	else if (homepage) status = 'live';
 	else if (Date.now() - pushed.getTime() < RECENT_MS) status = 'in-progress';
 	else status = 'complete';

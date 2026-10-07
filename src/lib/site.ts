@@ -16,6 +16,8 @@ export const site = {
 	awayTitle: 'Come back soon 👋',
 	// Public repos from this GitHub account become the project cards.
 	github: 'reg55158',
+	// Repo names to always show as "Complete", whatever their website or last push says.
+	completeProjects: ['inventor-pdf-export'],
 	links: [
 		{ label: 'GitHub', href: 'https://github.com/reg55158' },
 		{ label: 'LinkedIn', href: 'https://www.linkedin.com/' }
