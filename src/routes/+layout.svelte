@@ -3,6 +3,7 @@
 	import { onMount } from 'svelte';
 	import favicon from '#lib/assets/favicon.svg';
 	import RaceScrollbar from '#lib/components/RaceScrollbar.svelte';
+	import SiteSwitch from '#lib/components/SiteSwitch.svelte';
 	import { page } from '$app/state';
 	import { site } from '#lib/site.ts';
 	import type { LayoutProps } from './$types';
@@ -61,6 +62,7 @@
 					<button class="link">Log out</button>
 				</form>
 			{/if}
+			<SiteSwitch current="main" />
 		</nav>
 	</div>
 </header>
