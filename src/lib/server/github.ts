@@ -20,6 +20,8 @@ const CACHE_MS = 10 * 60 * 1000;
 const RECENT_MS = 90 * 24 * 60 * 60 * 1000;
 // Give repos this topic on GitHub to pick exactly which ones appear. If none have it, all are shown.
 const SHOWCASE_TOPIC = 'portfolio';
+// Give a repo this topic to show it as "Complete", whatever its website or last push says.
+const COMPLETE_TOPIC = 'complete';
 
 let cache: { projects: Project[]; fetchedAt: number } | null = null;
 
@@ -84,7 +86,7 @@ function toProject(repo: GithubRepo): Project {
 
 	let status: Project['status'];
 	if (repo.archived) status = 'archived';
-	else if (site.completeProjects.includes(repo.name)) status = 'complete';
+	else if (repo.topics?.includes(COMPLETE_TOPIC)) status = 'complete';
 	else if (homepage) status = 'live';
 	else if (Date.now() - pushed.getTime() < RECENT_MS) status = 'in-progress';
 	else status = 'complete';
@@ -92,9 +94,10 @@ function toProject(repo: GithubRepo): Project {
 	return {
 		title: repo.name.replaceAll('_', ' '),
 		summary: repo.description ?? 'No description yet.',
-		tags: [repo.language, ...(repo.topics ?? []).filter((t) => t !== SHOWCASE_TOPIC)].filter(
-			(t): t is string => Boolean(t)
-		),
+		tags: [
+			repo.language,
+			...(repo.topics ?? []).filter((t) => t !== SHOWCASE_TOPIC && t !== COMPLETE_TOPIC)
+		].filter((t): t is string => Boolean(t)),
 		year: pushed.getFullYear(),
 		status,
 		stars: repo.stargazers_count,
