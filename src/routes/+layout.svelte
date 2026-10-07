@@ -4,11 +4,17 @@
 	import favicon from '#lib/assets/favicon.svg';
 	import RaceScrollbar from '#lib/components/RaceScrollbar.svelte';
 	import SiteSwitch from '#lib/components/SiteSwitch.svelte';
+	import { afterNavigate } from '$app/navigation';
 	import { page } from '$app/state';
 	import { site } from '#lib/site.ts';
 	import type { LayoutProps } from './$types';
 
 	let { children, data }: LayoutProps = $props();
+
+	// Phones: the links live in a drop-down behind the burger button
+	let menuOpen = $state(false);
+	let header: HTMLElement;
+	afterNavigate(() => (menuOpen = false));
 
 	const nav = [
 		{ href: '/', label: 'Home' },
@@ -36,16 +42,21 @@
 	<meta name="description" content={site.description} />
 </svelte:head>
 
+<svelte:window
+	onkeydown={(e) => e.key === 'Escape' && (menuOpen = false)}
+	onclick={(e) => menuOpen && !header.contains(e.target as Node) && (menuOpen = false)}
+/>
+
 <RaceScrollbar />
 
-<header data-site-header>
+<header data-site-header bind:this={header}>
 	<div class="container bar">
 		<a class="logo" href="/">
 			<!-- Same file as the tab icon; alt is empty because the name right next to it says it -->
 			<img src={favicon} alt="" width="34" height="34" />
 			{site.name}
 		</a>
-		<nav>
+		<nav id="site-nav" class:open={menuOpen}>
 			{#each nav as item}
 				<a href={item.href} aria-current={page.url.pathname === item.href ? 'page' : undefined}>
 					{item.label}
@@ -64,6 +75,17 @@
 			{/if}
 			<SiteSwitch current="main" />
 		</nav>
+		<button
+			class="burger"
+			aria-label="Menu"
+			aria-controls="site-nav"
+			aria-expanded={menuOpen}
+			onclick={() => (menuOpen = !menuOpen)}
+		>
+			<span></span>
+			<span></span>
+			<span></span>
+		</button>
 	</div>
 </header>
 
@@ -108,8 +130,7 @@
 	.bar {
 		display: flex;
 		align-items: center;
-		justify-content: space-between;
-		height: 60px;
+		min-height: 60px;
 		gap: 16px;
 	}
 
@@ -138,6 +159,7 @@
 		display: flex;
 		align-items: center;
 		gap: 4px;
+		margin-left: auto;
 	}
 
 	nav a,
@@ -148,6 +170,7 @@
 		font: inherit;
 		font-size: 0.95rem;
 		font-weight: 500;
+		white-space: nowrap;
 	}
 
 	nav a:hover,
@@ -160,6 +183,96 @@
 	nav a[aria-current='page'] {
 		color: var(--gulf-orange);
 		background: var(--navy);
+	}
+
+	.burger {
+		display: none;
+	}
+
+	/*
+	 * Phones: one row with the logo, the site switch and a burger button. The links drop down
+	 * below the bar, full width, in the same orange with a navy stripe.
+	 */
+	@media (max-width: 640px) {
+		.bar {
+			gap: 10px;
+		}
+
+		.burger {
+			display: flex;
+			margin-left: auto;
+			flex-direction: column;
+			justify-content: center;
+			gap: 5px;
+			width: 40px;
+			height: 40px;
+			padding: 0 9px;
+			border: 0;
+			border-radius: 8px;
+			background: none;
+			cursor: pointer;
+		}
+
+		.burger:hover,
+		.burger[aria-expanded='true'] {
+			background: rgb(11 23 34 / 0.12);
+		}
+
+		.burger span {
+			display: block;
+			height: 3px;
+			border-radius: 2px;
+			background: var(--navy);
+			transition:
+				transform 0.2s,
+				opacity 0.2s;
+		}
+
+		/* The three bars fold into an X while the menu is open */
+		.burger[aria-expanded='true'] span:nth-child(1) {
+			transform: translateY(8px) rotate(45deg);
+		}
+		.burger[aria-expanded='true'] span:nth-child(2) {
+			opacity: 0;
+		}
+		.burger[aria-expanded='true'] span:nth-child(3) {
+			transform: translateY(-8px) rotate(-45deg);
+		}
+
+		nav {
+			display: none;
+			position: absolute;
+			top: 100%;
+			left: 0;
+			right: 0;
+			/* Sit under the header's navy stripe */
+			margin-top: 4px;
+			flex-direction: column;
+			align-items: stretch;
+			gap: 2px;
+			padding: 8px 16px 12px;
+			background: var(--gulf-orange);
+			border-bottom: 4px solid var(--navy);
+			box-shadow: var(--shadow);
+		}
+
+		nav.open {
+			display: flex;
+		}
+
+		/* The site switch sits at the bottom of the menu */
+		nav :global(.switch) {
+			align-self: flex-start;
+			margin: 10px 0 0 12px;
+		}
+
+		nav a,
+		.link {
+			padding: 10px 12px;
+			font-size: 1rem;
+			text-align: left;
+			width: 100%;
+		}
 	}
 
 	nav form {
