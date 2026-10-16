@@ -26,3 +26,7 @@ vite.config.ts.timestamp-*
 .claude/
 
 .vercel
+
+# Impeccable per-person settings
+.impeccable/config.local.json
+.impeccable/hook.cache.json
