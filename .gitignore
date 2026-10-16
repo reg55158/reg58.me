@@ -22,7 +22,8 @@ Thumbs.db
 vite.config.js.timestamp-*
 vite.config.ts.timestamp-*
 
-# Local tooling
-.claude/
+# Local tooling (project skills under .claude/skills are shared)
+.claude/*
+!.claude/skills/
 
 .vercel
